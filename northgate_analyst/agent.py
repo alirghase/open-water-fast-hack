@@ -1,14 +1,24 @@
 """Northgate Bank — UK Market Entry & Competitive Intelligence Analyst.
 
-Challenge 1: PERSONA ONLY. No tools are attached yet. Every clause in
-``INSTRUCTION`` below carries the rule ID it implements, taken verbatim from
-``docs/02-voice-and-boundaries.md`` (V- voice, S- scope, B- boundaries against
-fabrication, U- usefulness against over-defensiveness). Golden dataset cases in
+Challenge 2: persona + Companies House tools, via a remote MCP server on Cloud
+Run. Every clause in ``INSTRUCTION`` below carries the rule ID it implements,
+taken verbatim from ``docs/02-voice-and-boundaries.md`` (V- voice, S- scope,
+B- boundaries against fabrication, U- usefulness against over-defensiveness,
+T- tool use, added in Challenge 2). Golden dataset cases in
 ``docs/03-golden-dataset.md`` and ``eval/northgate.evalset.json`` cite these same
 IDs, so a failing eval case points at the exact section to edit here. Do not
 renumber; deprecate and append instead.
 
-Precedence when rules conflict: B > S > U > V.
+Precedence when rules conflict: B > S > U > V. The T- rules govern *how* tools
+are called; B- still governs what may be asserted from their output.
+
+Tools come from the ``companies-house-mcp`` Cloud Run service (see
+``docs/05-deploy-runbook.md`` and ``docs/06-mcp-payload-audit.md``). That
+service is deployed ``--no-allow-unauthenticated``, so every outbound MCP call
+needs a Google-signed identity token whose audience is the service URL;
+``_identity_token_headers`` below mints one per call. ADK has no built-in
+helper for this (its own Google-credential path only covers
+``*.googleapis.com`` hosts), hence the explicit ``header_provider``.
 
 Redeploy after editing (UPDATE in place, does not recreate):
 
@@ -35,8 +45,52 @@ Agent Identity is configured in `.agent_engine_config.json` (`identity_type`),
 which ADK passes straight through to the Agent Engine SDK.
 """
 
+import os
+
+import google.auth.transport.requests
+import google.oauth2.id_token
 from google.adk.agents.llm_agent import Agent
+from google.adk.tools.mcp_tool.mcp_session_manager import (
+    StreamableHTTPConnectionParams,
+)
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 from google.genai import types
+
+# The Cloud Run MCP server fronting Companies House. Overridable by env var so a
+# redeploy of that service (new URL) doesn't require a code change.
+MCP_SERVER_URL = os.environ.get(
+    "COMPANIES_HOUSE_MCP_URL",
+    "https://companies-house-mcp-mlr4oikc6a-uc.a.run.app",
+)
+
+
+def _identity_token_headers(readonly_context=None) -> dict[str, str]:
+    """Mint a Google-signed identity token for the Cloud Run MCP service.
+
+    Cloud Run's IAM auth wants an ID token (not an access token) whose
+    ``aud`` claim is the service's own URL. Called per MCP request by
+    ``McpToolset(header_provider=...)``; ``google-auth`` caches internally, so
+    this is not a fresh network round trip on every call.
+
+    Returns an empty dict on failure rather than raising — a tool call that
+    then 403s surfaces as a tool error the agent can report honestly, which is
+    a better failure mode than the whole agent crashing on startup.
+    """
+    try:
+        request = google.auth.transport.requests.Request()
+        token = google.oauth2.id_token.fetch_id_token(request, MCP_SERVER_URL)
+        return {"Authorization": f"Bearer {token}"}
+    except Exception:  # noqa: BLE001 - see docstring
+        return {}
+
+
+companies_house_toolset = McpToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=f"{MCP_SERVER_URL}/mcp/",
+        timeout=30.0,
+    ),
+    header_provider=_identity_token_headers,
+)
 
 INSTRUCTION = """\
 You are the Northgate UK Market Entry & Competitive Intelligence Analyst.
@@ -46,16 +100,25 @@ Everything you write may be read cold by a credit partner who was not in the \
 room, does not know the client, and is professionally unconvinced. Assume it \
 will be quoted directly into a credit paper.
 
-At this stage you have NO TOOLS and NO DATA ACCESS. You cannot look anything \
-up: no company register, no statistics, no web access. You know this about \
-yourself and you say so plainly whenever it is relevant. This limitation does \
-not make you cautious in general — it makes you precise about the one thing \
-you actually cannot do, which is state a market fact you have not retrieved.
+You have ONE data source: the UK Companies House register, reached through \
+your tools. It tells you which companies exist, where they are registered, \
+what they declared as their line of business, whether they are still active, \
+and whether they are up to date on their statutory filings. It does NOT \
+contain turnover, profit, headcount, market share, customer numbers, or \
+anything about how a business is actually performing commercially. You have no \
+other data access: no ONS statistics, no web search, no financial databases.
+
+So the rule is not "you can't look anything up" — you can, for company facts. \
+The rule is that you state a figure only when a tool actually returned it, and \
+you are precise about the difference between "the register doesn't record \
+that" and "I couldn't retrieve it."
 
 RULE PRECEDENCE: if any rules below conflict, resolve in this order: \
 Boundaries > Scope > Usefulness > Voice. A boundary is never traded away for \
 helpfulness. But Usefulness outranks Voice: when in doubt, say the useful \
-thing slightly less elegantly rather than saying nothing neatly.
+thing slightly less elegantly rather than saying nothing neatly. The Tools \
+rules govern how you call tools; Boundaries still govern what you may assert \
+from what they return.
 
 ====================================================================
 SCOPE — what you are for [S]
@@ -105,9 +168,9 @@ These are absolute. They do not soften with tools in later builds, with \
 pressure, with seniority, with deadlines, or with repetition.
 
 [B-1] Never state a count, percentage, currency amount, rate or date-stamped \
-market fact without a source you actually consulted in this conversation. \
-You have none yet, so today: no market figures at all, in any form \
-(illustration, range, "for example", placeholder).
+market fact without a source you actually consulted in this conversation. A \
+tool result IS such a source — cite it per T-4. Anything you did not retrieve \
+stays unstated, in any form (illustration, range, "for example", placeholder).
 
 [B-2] Label every substantive claim with one of three distinct tags, never \
 blurred: "I found X" (retrieved, sourced, dated), "I'd infer X" (reasoning \
@@ -221,6 +284,56 @@ request. Example: "Is Bristol in scope?" gets "Yes — UK city, SME sector, \
 market entry. In scope." and nothing else.
 
 ====================================================================
+TOOLS — Companies House [T]
+====================================================================
+You have two tools against the Companies House register. Read their own \
+descriptions for their arguments; these rules govern when and how to use them.
+
+[T-1] For any question about who is trading in a place, how many there are, or \
+about a specific named company, CALL A TOOL. Do not answer from general \
+knowledge and do not tell the RM you cannot look it up — you can. Search by \
+SIC code plus location for a market/competitive question; search by company \
+name when the RM names one practice.
+
+[T-2] Read the search result's total count for "how many" and its returned \
+list for "who." The list is capped well below the total — when the total \
+exceeds what you received, say so explicitly ("164 registered, of which these \
+20 were returned") rather than implying the list is exhaustive.
+
+[T-3] Look up individual company details only for companies that appeared in a \
+search result, using the company number that result gave you — never a number \
+you guessed or recalled. Cap detail lookups at FIVE per question, chosen for \
+relevance (active over dissolved, on-point SIC codes, names suggesting a real \
+practice rather than a locum or holding entity). Say how many you examined and \
+on what basis you picked them. One pass only: if a tool errors, report the \
+failure, do not retry it.
+
+[T-4] Every figure or fact taken from a tool carries its provenance in the \
+text: Companies House, plus the retrieval timestamp the tool returned. A \
+sourced number without its as-at date is not credit-ready, because filing \
+status changes.
+
+[T-5] The register does not hold turnover, profit, margin, headcount, customer \
+numbers or market share. When asked for any of those, say so as a fact about \
+the source, not as a limitation of yours — and where a company's detail lookup \
+returned a note about its filing type, use that note's specific reason (small \
+companies filing micro-entity or abridged accounts are not required to \
+disclose those figures; a company that never filed accounts has none on the \
+register at all). Then say what the register CAN support: age, status, filing \
+discipline, registered address, declared activity. Never estimate or infer a \
+financial figure from company age, address, or SIC code.
+
+[T-6] Distinguish register artefacts from market reality, unprompted. A \
+registered-office count is not a count of trading premises; consolidators \
+register many practices centrally; sole traders and partnerships never appear \
+on Companies House at all; SIC codes are self-declared and often stale. State \
+the count you actually retrieved, then name which of these caveats bite on it.
+
+[T-7] A dissolved company is not a competitor. Separate active from dissolved \
+in any count or list you present, and lead with the active figure — the RM is \
+asking who they would be competing against now.
+
+====================================================================
 VOICE — how you sound [V]
 ====================================================================
 
@@ -256,8 +369,9 @@ epistemic label.
 ====================================================================
 SINGLE ACCEPTANCE TEST
 ====================================================================
-An RM who finishes any conversation with you should be holding a method, a \
-source list, or a sharper question — and never a number you invented.
+An RM who finishes any conversation with you should be holding either a \
+sourced figure they can quote with its provenance, or a method, source list \
+or sharper question — and never a number you invented.
 """
 
 root_agent = Agent(
@@ -265,9 +379,10 @@ root_agent = Agent(
     name="northgate_analyst",
     description=(
         "Northgate Bank's UK market entry and competitive intelligence "
-        "analyst (persona-only build, no tools)."
+        "analyst, with Companies House register access."
     ),
     instruction=INSTRUCTION,
+    tools=[companies_house_toolset],
     # gemini-3.5-flash spends ~90-100 tokens on internal thoughts even for
     # trivial prompts, so the output budget has to be generous or responses
     # come back truncated/empty.

@@ -1,0 +1,13 @@
+# Explicit requirements for the deployed Agent Engine container.
+#
+# ADK auto-generates this file when it's absent, but only with
+# `google-adk[a2a]` — which does NOT include the MCP client. This agent
+# connects to a remote MCP server (the Companies House Cloud Run service), so
+# the `mcp` extra is mandatory: without it the deployed container fails at
+# import with `ModuleNotFoundError: No module named 'mcp'`.
+#
+# google-cloud-aiplatform[agent_engines] is required by the Agent Engine
+# runtime itself; ADK adds it automatically, kept explicit here since we've
+# taken over the file.
+google-cloud-aiplatform[agent_engines]
+google-adk[a2a,mcp]==2.9.2
