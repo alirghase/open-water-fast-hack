@@ -4,6 +4,8 @@ Northgate Bank — UK Market Entry & Competitive Intelligence Analyst.
 
 The brief below is the challenge text as issued: scenario, definition of done, reading references, and tips. Work through it in order. Challenge 1 has no tools. Challenge 2 adds one data source. Challenge 3 splits the work across four agents.
 
+The reading-reference titles are unchanged. Each one is linked to the public page it names. [fastlane.haron.app/#/attendee](https://fastlane.haron.app/#/attendee) is login-only, so these are the public docs, not a copy of the hrefs inside that app.
+
 ---
 
 ## Challenge 1: Foundations & Persona Architecture
@@ -43,17 +45,17 @@ Once the persona holds up in the ADK web UI, deploy it to Agent Runtime with the
 
 ### Reading References
 
-* ADK — Python Quickstart
-* ADK CLI Reference (adk create, adk run, adk web)
-* ADK — LLM Agents: instruction, persona
-* Deploy an existing ADK agent to Agent Runtime with Agents CLI
-* Agent Runtime agent identity
+* [ADK — Python Quickstart](https://adk.dev/get-started/python/)
+* [ADK CLI Reference (adk create, adk run, adk web)](https://adk.dev/runtime/command-line/)
+* [ADK — LLM Agents: instruction, persona](https://adk.dev/agents/llm-agents/)
+* [Deploy an existing ADK agent to Agent Runtime with Agents CLI](https://adk.dev/deploy/agent-engine/)
+* [Agent Runtime agent identity](https://adk.dev/integrations/agent-identity/)
 * Use a deployed agent — Agent Platform Console Playground
-* What is Prompt Engineering?
-* Introduction to Prompt Engineering
-* Prompt Design Strategies
-* How to write ai agent instructions
-* Golden Datasets
+* [What is Prompt Engineering?](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/prompts/introduction-prompt-design)
+* [Introduction to Prompt Engineering](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/prompts/introduction-prompt-design)
+* [Prompt Design Strategies](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/prompts/prompt-design-strategies)
+* [How to write ai agent instructions](https://adk.dev/agents/llm-agents/)
+* [Golden Datasets](https://adk.dev/evaluate/)
 
 ### Tip
 
@@ -102,26 +104,26 @@ Keep the scope tight: one search, at most five competitors looked up in detail, 
 
 #### Companies House
 
-* Companies House API — get started and register for a key
-* Company House overview
-* Companies House — how to create an application
-* Companies House Public Data API — advanced company search
-* Companies House Public Data API — company profile resource
-* ONS — UK Standard Industrial Classification (SIC 2007)
-* GOV.UK — what micro-entities and small companies file
+* [Companies House API — get started and register for a key](https://developer.company-information.service.gov.uk/get-started)
+* [Company House overview](https://developer.company-information.service.gov.uk/overview)
+* [Companies House — how to create an application](https://developer.company-information.service.gov.uk/how-to-create-an-application)
+* [Companies House Public Data API — advanced company search](https://developer-specs.company-information.service.gov.uk/companies-house-public-data-api/reference/search/advanced-company-search)
+* [Companies House Public Data API — company profile resource](https://developer-specs.company-information.service.gov.uk/companies-house-public-data-api/reference/company-profile/company-profile)
+* [ONS — UK Standard Industrial Classification (SIC 2007)](https://www.ons.gov.uk/methodology/classificationsandstandards/ukstandardindustrialclassificationofeconomicactivities/uksic2007)
+* [GOV.UK — what micro-entities and small companies file](https://www.gov.uk/government/publications/life-of-a-company-annual-requirements/life-of-a-company-part-1-accounts)
 
 #### MCP Server
 
-* MCP — build a server (Python SDK, FastMCP)
-* MCP Inspector — test and debug MCP servers
+* [MCP — build a server (Python SDK, FastMCP)](https://modelcontextprotocol.io/docs/develop/build-server)
+* [MCP Inspector — test and debug MCP servers](https://modelcontextprotocol.io/docs/tools/inspector)
 
 #### ADK & Cloud Run
 
-* Cloud Run — build and deploy a remote MCP server
-* Cloud Run — host MCP servers
-* ADK — MCP tools (McpToolset, streamable HTTP)
-* Codelab — build and deploy an ADK agent that uses an MCP server on Cloud Run
-* Deploy an ADK agent to Agent Runtime with Agents CLI
+* [Cloud Run — build and deploy a remote MCP server](https://docs.cloud.google.com/run/docs/host-mcp-servers)
+* [Cloud Run — host MCP servers](https://docs.cloud.google.com/run/docs/host-mcp-servers)
+* [ADK — MCP tools (McpToolset, streamable HTTP)](https://adk.dev/tools-custom/mcp-tools/)
+* [Codelab — build and deploy an ADK agent that uses an MCP server on Cloud Run](https://codelabs.developers.google.com/codelabs/devsite/codelabs/adk-mcp-fulfillment-agent)
+* [Deploy an ADK agent to Agent Runtime with Agents CLI](https://adk.dev/deploy/agent-engine/)
 
 ### Tips
 
@@ -166,34 +168,34 @@ By the end of the challenge, a relationship manager should be able to ask: "Our 
 
 ### Reading References
 
-* What is AI-agent-orchestration
-* Building Multi Agent Systems
-* Draw.io
+* [What is AI-agent-orchestration](https://cloud.google.com/blog/products/ai-machine-learning/what-is-agent-orchestration)
+* [Building Multi Agent Systems](https://adk.dev/agents/multi-agents/)
+* [Draw.io](https://app.diagrams.net/)
 
 #### ONS data
 
-* ONS Explore local statistics
+* [ONS Explore local statistics](https://www.ons.gov.uk/explore-local-statistics/)
 
 #### Preparing the data with pandas
 
-* pandas — read_csv
-* pandas — merge
-* pandas — merge, join, and concatenate
-* pandas — DataFrame.to_csv
+* [pandas — read_csv](https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html)
+* [pandas — merge](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html)
+* [pandas — merge, join, and concatenate](https://pandas.pydata.org/docs/user_guide/merging.html)
+* [pandas — DataFrame.to_csv](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html)
 
 #### Agent Search
 
-* Agent Search - prepare data for ingestion
-* Agent Search — create a data store and ingest data
-* Agent Search - create search app
+* [Agent Search - prepare data for ingestion](https://docs.cloud.google.com/generative-ai-app-builder/docs/prepare-data)
+* [Agent Search — create a data store and ingest data](https://docs.cloud.google.com/generative-ai-app-builder/docs/create-datastore-ingest)
+* [Agent Search - create search app](https://docs.cloud.google.com/generative-ai-app-builder/docs/create-engine-es)
 
 #### ADK
 
-* ADK — multi-agent workflows and delegation
-* ADK - multi-agent design patterns
-* ADK - sub-agents vs agents as tools
-* ADK — session state - Focus on how to access state object in agent instructions and how to add to state object
-* ADK - VertexAiSearchTool
+* [ADK — multi-agent workflows and delegation](https://adk.dev/agents/multi-agents/)
+* [ADK - multi-agent design patterns](https://adk.dev/workflows/patterns/)
+* [ADK - sub-agents vs agents as tools](https://adk.dev/workflows/patterns/)
+* [ADK — session state - Focus on how to access state object in agent instructions and how to add to state object](https://adk.dev/sessions/state/)
+* [ADK - VertexAiSearchTool](https://adk.dev/tools/built-in-tools/)
 
 ### Tips
 
