@@ -235,8 +235,8 @@ By the end, a relationship manager should be able to reopen a conversation and a
 
 #### Non-technical
 
-* Run the red-team exercise: try to jailbreak the Northgate AI agent to bypass its instructions
-* Try harder to jailbreak the Northgate AI agent :)
+* Run the red-team exercise: try to jailbreak northgate AI agent to bypass his instructions
+* Try harder to jailbreak northgate AI agent :)
 * Draft a release checklist that lists the privacy, security, quality, and operational tasks still outstanding before go-live
 * Build and present a compelling business pitch demonstrating the agentic workflow's ROI
 
@@ -263,14 +263,12 @@ By the end, a relationship manager should be able to reopen a conversation and a
 
 No coding is needed for these readings and exercises. Start with the introduction, then adapt an example to the Bristol scenario. Older examples may not work on current models; a failed attempt is still worth recording.
 
-* [Learn Prompting — What is prompt hacking?](https://learnprompting.org/docs/prompt_hacking/introduction)
-* [Learn Prompting — Prompt injection examples](https://learnprompting.org/docs/prompt_hacking/injection)
-* [Prompt Engineering Guide — Adversarial prompting](https://www.promptingguide.ai/risks/adversarial)
+* [Learn Prompting — What is prompt hacking?](https://learnprompting.org/docs/prompt_hacking/introduction) — a short introduction to misleading an AI through its instructions
+* [Learn Prompting — Prompt injection examples](https://learnprompting.org/docs/prompt_hacking/injection) — simple "ignore the instructions" examples and explanations of attacks hidden in source material
+* [Prompt Engineering Guide — Adversarial prompting](https://www.promptingguide.ai/risks/adversarial) — example prompts and responses; start with the Prompt Injection section
 * [Lakera — Agent Breaker](https://www.lakera.ai/agent-breaker) — a browser-based AI hacking game for practice without setting up tools
-* Jailbreaking Gemini
+* Jailbraking Gemini
 
 ### Tips
 
-* The supplied test client is in `lloyds-agenticai-hack-resources/challenge4/ask_agent.py`. It creates a session automatically, gets a token from `gcloud`, and sends the prompt over `streamQuery`. A Model Armor request block prints `BLOCKED BY MODEL ARMOR` and exits with status `2` — that exit code is the machine-checkable difference between the gateway blocking a request and the agent declining one.
-* `ask_agent.py --session-id <id>` resumes an existing session, so it doubles as a cross-check on the VertexAiSessionService work.
-* Model Armor templates, the gateway, and the reasoning engine must all be in the same region. Note that the engine is in `us-central1` while the model resolves via `global` — the gateway follows the engine.
+* Your Agent Gateway and Model Armor need to be deployed in the same region for the integration to work properly.
