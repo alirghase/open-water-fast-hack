@@ -2,7 +2,7 @@
 
 Northgate Bank — UK Market Entry & Competitive Intelligence Analyst.
 
-The brief below is the challenge text as issued: scenario, definition of done, reading references, and tips. Work through it in order. Challenge 1 has no tools. Challenge 2 adds one data source. Challenge 3 splits the work across four agents.
+The brief below is the challenge text as issued: scenario, definition of done, reading references, and tips. Work through it in order. Challenge 1 has no tools. Challenge 2 adds one data source. Challenge 3 splits the work across four agents. Challenge 4 hardens the deployment and pitches it.
 
 The reading-reference titles are unchanged. Each one is linked to the public page it names. [fastlane.haron.app/#/attendee](https://fastlane.haron.app/#/attendee) is login-only, so these are the public docs, not a copy of the hrefs inside that app.
 
@@ -201,3 +201,76 @@ By the end of the challenge, a relationship manager should be able to ask: "Our 
 
 * Download needed datasets from ONS Explore local statistics directly
 * After you index crafted dataset test it out by creating search app and testing search capabilities there
+
+---
+
+## Challenge 4: Enterprise Hardening & The Pitch
+
+### Scenario Overview
+
+The relationship manager now has a Market Entry Report backed by Companies House and ONS data. Before Northgate shares it more widely, two questions remain: can we return to an earlier assessment, and can we trust the agent when someone tries to mislead it?
+
+First, keep the conversation. Vertex AI Agent Sessions, documented as Agent Platform Sessions, stores conversation history and shared agent state. Use VertexAiSessionService in the Agent Development Kit (ADK) so the relationship manager can resume an assessment after closing the client or restarting the application. A new session should start a separate conversation, not inherit the previous report.
+
+Next, protect the deployed agent with Agent Gateway and Model Armor. Configure Client-to-Agent (ingress) protection only: requests from the client to the agent and responses back to the client. Agent-to-Anywhere (egress) protection is outside this challenge. Model Armor checks supported prompts and responses for risks such as attempts to override instructions, sensitive information, and harmful content. Its templates define the checks; the gateway applies them to supported traffic. Creating a template without connecting it to the agent is not enough.
+
+Use the supplied test client to try a normal business question and a synthetic prompt that triggers your Model Armor policy. Save the results. An agent saying "I cannot answer" is different from the gateway blocking the request before it reaches the agent.
+
+Not every attack comes from the person asking the question. Instructions can also hide inside a company name, filing description, or retrieved document. This is indirect prompt injection: the agent mistakes source text for an instruction. The Client-to-Agent gateway does not inspect the internal MCP tool exchange, so the agent must treat that text as data, not commands.
+
+Your team now becomes the red team: try to make the agent invent revenue, recommend an acquisition, omit a limitation, or follow an instruction hidden in a synthetic tool result. Record what held, what failed, and what you fixed. Test only your team's authorised deployment or training labs, using synthetic data. The reading references include examples that require no coding.
+
+Finish with a short pitch. Show the sourced report, a resumed conversation, and a before-and-after security result. Explain the time saved and the work still needed before production.
+
+By the end, a relationship manager should be able to reopen a conversation and ask: "Continue our Bristol veterinary-practice assessment and refresh the company evidence." The agent should retain the earlier context, fetch fresh company facts, and keep the ONS reference period and data limitations visible.
+
+### Definition of Done
+
+#### Technical
+
+* Used VertexAiSessionService to resume a deployed conversation with its history and shared state intact
+* Shown that a new session starts without the previous conversation's history or ordinary session state
+* Configured only Client-to-Agent (ingress) protection on the identity-enabled Agent Runtime, using Agent Gateway with Model Armor request and response templates; demonstrated an allowed request and a confirmed Model Armor block using the test client
+* Shown that an instruction hidden in synthetic source data does not override the report's facts or rules
+
+#### Non-technical
+
+* Run the red-team exercise: try to jailbreak the Northgate AI agent to bypass its instructions
+* Try harder to jailbreak the Northgate AI agent :)
+* Draft a release checklist that lists the privacy, security, quality, and operational tasks still outstanding before go-live
+* Build and present a compelling business pitch demonstrating the agentic workflow's ROI
+
+### Reading References
+
+#### Vertex AI sessions
+
+* [Agent Platform Sessions overview — conversation history, events, and state](https://docs.cloud.google.com/gemini-enterprise-agent-platform/sessions/overview)
+* [Use Sessions with ADK — connect VertexAiSessionService](https://adk.dev/sessions/session/)
+* [ADK — session state and scope](https://adk.dev/sessions/state/)
+* [Manage Sessions in the console and API — inspect stored sessions and events](https://docs.cloud.google.com/gemini-enterprise-agent-platform/sessions/manage-sessions-api)
+
+#### Agent Gateway and Model Armor
+
+* [Agent Gateway overview — ingress versus egress](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern/gateways/agent-gateway-overview)
+* [Set up Agent Gateway](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern/gateways/set-up-agent-gateway)
+* [Agent identity on Agent Runtime](https://adk.dev/integrations/agent-identity/)
+* [Route Agent Runtime traffic through Agent Gateway — runtime binding, registry, and IAM](https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/runtime/agent-gateway-runtime-deploy)
+* [Configure Model Armor on a gateway — roles and supported payloads](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern/configure-model-armor)
+* [Create and manage Model Armor templates](https://docs.cloud.google.com/security-command-center/docs/manage-model-armor-templates)
+* [Validate templates and sanitize prompts and responses](https://docs.cloud.google.com/security-command-center/docs/sanitize-prompts-responses)
+
+#### Educational AI red-teaming
+
+No coding is needed for these readings and exercises. Start with the introduction, then adapt an example to the Bristol scenario. Older examples may not work on current models; a failed attempt is still worth recording.
+
+* [Learn Prompting — What is prompt hacking?](https://learnprompting.org/docs/prompt_hacking/introduction)
+* [Learn Prompting — Prompt injection examples](https://learnprompting.org/docs/prompt_hacking/injection)
+* [Prompt Engineering Guide — Adversarial prompting](https://www.promptingguide.ai/risks/adversarial)
+* [Lakera — Agent Breaker](https://www.lakera.ai/agent-breaker) — a browser-based AI hacking game for practice without setting up tools
+* Jailbreaking Gemini
+
+### Tips
+
+* The supplied test client is in `lloyds-agenticai-hack-resources/challenge4/ask_agent.py`. It creates a session automatically, gets a token from `gcloud`, and sends the prompt over `streamQuery`. A Model Armor request block prints `BLOCKED BY MODEL ARMOR` and exits with status `2` — that exit code is the machine-checkable difference between the gateway blocking a request and the agent declining one.
+* `ask_agent.py --session-id <id>` resumes an existing session, so it doubles as a cross-check on the VertexAiSessionService work.
+* Model Armor templates, the gateway, and the reasoning engine must all be in the same region. Note that the engine is in `us-central1` while the model resolves via `global` — the gateway follows the engine.
