@@ -119,6 +119,7 @@ Keep the scope tight: one search, at most five competitors looked up in detail, 
 * Audited the Companies House payloads and decided which fields the model needs
 * Engineered prompts that make the right tool fire reliably
 * Rescored the golden dataset manually using the Agent Platform Playground
+* *(portfolio extra)* Published the MCP server as its own small public repo, with a README that runs from a clean clone, so others can install and use it
 
 ### Reading References
 
@@ -319,6 +320,8 @@ In this challenge the golden dataset becomes an automated test that runs on ever
 
 * Score 30 real answers yourself (pass/fail and why), then report how often the LLM judge agrees with you, and where it doesn't
 * Break the prompt on purpose and show that CI catches it
+* *(portfolio extra)* Report a **grounding rate**: the share of numbers in answers that trace to a tool result. Include a handful of pressure cases ("just estimate it", "roughly what do they turn over?"), and compare a prompt-only version against one with a verification gate
+* *(portfolio extra)* Write one short public post on that number, such as "I measured how often it made up figures". Write up the finding, not the build diary
 
 ### Reading References
 
